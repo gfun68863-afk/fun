@@ -1,0 +1,244 @@
+p1
+
+db.students.insertMany([
+{
+    roll_no: 101,
+    name: "Amit Sharma",
+    address: {
+        city: "Pune",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-02-18"),
+    marks: {
+        physics: 78,
+        chemistry: 82,
+        maths: 91
+    },
+    admission_date: ISODate("2020-06-15"),
+    scholarship: "National Merit"
+},
+
+{
+    roll_no: 102,
+    name: "Anjali Patil",
+    address: {
+        city: "Mumbai",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-02-18"),
+    marks: {
+        physics: 88,
+        chemistry: 90,
+        maths: 95
+    },
+    admission_date: ISODate("2023-07-10"),
+    scholarship: "State Scholarship"
+},
+
+{
+    roll_no: 103,
+    name: "Rohit Verma",
+    address: {
+        city: "Delhi",
+        state: "Delhi"
+    },
+    exam_date: ISODate("2025-12-12"),
+    marks: {
+        physics: 67,
+        chemistry: 70,
+        maths: 55
+    },
+    admission_date: ISODate("2025-08-20"),
+    scholarship: "National Merit"
+},
+
+{
+    roll_no: 104,
+    name: "Akash Kulkarni",
+    address: {
+        city: "Nagpur",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-01-15"),
+    marks: {
+        physics: 92,
+        chemistry: 89,
+        maths: 96
+    },
+    admission_date: ISODate("2021-09-05"),
+    scholarship: "None"
+},
+
+{
+    roll_no: 105,
+    name: "Sneha Joshi",
+    address: {
+        city: "Bangalore",
+        state: "Karnataka"
+    },
+    exam_date: ISODate("2026-03-10"),
+    marks: {
+        physics: 84,
+        chemistry: 79,
+        maths: 88
+    },
+    admission_date: ISODate("2024-01-18"),
+    scholarship: "National Merit"
+}
+])
+
+Queries
+1. Total count of students admitted in year 2020
+db.students.countDocuments({
+    admission_date: {
+        $gte: ISODate("2020-01-01"),
+        $lt: ISODate("2021-01-01")
+    }
+})
+
+2. Display student names who received "National Merit"
+db.students.find(
+    { scholarship: "National Merit" },
+    { name: 1, _id: 0 }
+)
+
+3. Display students belonging to Maharashtra
+db.students.find({
+    "address.state": "Maharashtra"
+})
+
+4. Increase physics marks by 6 for exam date 18 Feb 2026
+db.students.updateMany(
+{
+    exam_date: ISODate("2026-02-18")
+},
+{
+    $inc: { "marks.physics": 6 }
+}
+)
+
+5. Delete students whose maths marks < 60
+db.students.deleteMany({
+    "marks.maths": { $lt: 60 }
+})
+
+6. Find students whose average marks > 85
+db.students.aggregate([
+{
+    $project: {
+        name: 1,
+        average: {
+            $avg: [
+                "$marks.physics",
+                "$marks.chemistry",
+                "$marks.maths"
+            ]
+        }
+    }
+},
+{
+    $match: {
+        average: { $gt: 85 }
+    }
+}
+])
+
+7. Find topper (highest total marks)
+db.students.aggregate([
+{
+    $project: {
+        name: 1,
+        total: {
+            $add: [
+                "$marks.physics",
+                "$marks.chemistry",
+                "$marks.maths"
+            ]
+        }
+    }
+},
+{
+    $sort: { total: -1 }
+},
+{
+    $limit: 1
+}
+])
+
+8. Count students city-wise
+db.students.aggregate([
+{
+    $group: {
+        _id: "$address.city",
+        total_students: { $sum: 1 }
+    }
+}
+])
+
+9. Find highest marks in each subject
+db.students.aggregate([
+{
+    $group: {
+        _id: null,
+        highest_physics: { $max: "$marks.physics" },
+        highest_chemistry: { $max: "$marks.chemistry" },
+        highest_maths: { $max: "$marks.maths" }
+    }
+}
+])
+
+10. Find lowest marks in maths
+db.students.aggregate([
+{
+    $group: {
+        _id: null,
+        lowest_maths: { $min: "$marks.maths" }
+    }
+}
+])
+
+11. Find students admitted after year 2022
+db.students.find({
+    admission_date: {
+        $gt: ISODate("2022-12-31")
+    }
+})
+
+12. Find students scoring between 80 and 90 in physics
+db.students.find({
+    "marks.physics": {
+        $gte: 80,
+        $lte: 90
+    }
+})
+
+13. Find students whose names start with "A"
+db.students.find({
+    name: /^A/
+})
+
+14. Find students whose city is not Pune or Mumbai
+db.students.find({
+    "address.city": {
+        $nin: ["Pune", "Mumbai"]
+    }
+})
+
+15. Add new subject marks for roll no 101
+db.students.updateOne(
+{
+    roll_no: 101
+},
+{
+    $set: {
+        "marks.computer": 89
+    }
+}
+)
+
+16. Delete records of students admitted after 1 Aug 2025
+db.students.deleteMany({
+    admission_date: {
+        $gt: ISODate("2025-08-01")
+    }
+})
