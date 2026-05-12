@@ -1,0 +1,1232 @@
+p1 - 13 mongodb
+p1
+db.students.insertMany([
+{
+    roll_no: 101,
+    name: "Amit Sharma",
+    address: {
+        city: "Pune",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-02-18"),
+    marks: {
+        physics: 78,
+        chemistry: 82,
+        maths: 91
+    },
+    admission_date: ISODate("2020-06-15"),
+    scholarship: "National Merit"
+},
+
+{
+    roll_no: 102,
+    name: "Anjali Patil",
+    address: {
+        city: "Mumbai",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-02-18"),
+    marks: {
+        physics: 88,
+        chemistry: 90,
+        maths: 95
+    },
+    admission_date: ISODate("2023-07-10"),
+    scholarship: "State Scholarship"
+},
+
+{
+    roll_no: 103,
+    name: "Rohit Verma",
+    address: {
+        city: "Delhi",
+        state: "Delhi"
+    },
+    exam_date: ISODate("2025-12-12"),
+    marks: {
+        physics: 67,
+        chemistry: 70,
+        maths: 55
+    },
+    admission_date: ISODate("2025-08-20"),
+    scholarship: "National Merit"
+},
+
+{
+    roll_no: 104,
+    name: "Akash Kulkarni",
+    address: {
+        city: "Nagpur",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-01-15"),
+    marks: {
+        physics: 92,
+        chemistry: 89,
+        maths: 96
+    },
+    admission_date: ISODate("2021-09-05"),
+    scholarship: "None"
+},
+
+{
+    roll_no: 105,
+    name: "Sneha Joshi",
+    address: {
+        city: "Bangalore",
+        state: "Karnataka"
+    },
+    exam_date: ISODate("2026-03-10"),
+    marks: {
+        physics: 84,
+        chemistry: 79,
+        maths: 88
+    },
+    admission_date: ISODate("2024-01-18"),
+    scholarship: "National Merit"
+}
+])
+
+Queries
+1. Total count of students admitted in year 2020
+db.students.countDocuments({
+    admission_date: {
+        $gte: ISODate("2020-01-01"),
+        $lt: ISODate("2021-01-01")
+    }
+})
+
+2. Display student names who received "National Merit"
+db.students.find(
+    { scholarship: "National Merit" },
+    { name: 1, _id: 0 }
+)
+
+3. Display students belonging to Maharashtra
+db.students.find({
+    "address.state": "Maharashtra"
+})
+
+4. Increase physics marks by 6 for exam date 18 Feb 2026
+db.students.updateMany(
+{
+    exam_date: ISODate("2026-02-18")
+},
+{
+    $inc: { "marks.physics": 6 }
+}
+)
+
+5. Delete students whose maths marks < 60
+db.students.deleteMany({
+    "marks.maths": { $lt: 60 }
+})
+
+6. Find students whose average marks > 85
+db.students.aggregate([
+{
+    $project: {
+        name: 1,
+        average: {
+            $avg: [
+                "$marks.physics",
+                "$marks.chemistry",
+                "$marks.maths"
+            ]
+        }
+    }
+},
+{
+    $match: {
+        average: { $gt: 85 }
+    }
+}
+])
+
+7. Find topper (highest total marks)
+db.students.aggregate([
+{
+    $project: {
+        name: 1,
+        total: {
+            $add: [
+                "$marks.physics",
+                "$marks.chemistry",
+                "$marks.maths"
+            ]
+        }
+    }
+},
+{
+    $sort: { total: -1 }
+},
+{
+    $limit: 1
+}
+])
+
+8. Count students city-wise
+db.students.aggregate([
+{
+    $group: {
+        _id: "$address.city",
+        total_students: { $sum: 1 }
+    }
+}
+])
+
+9. Find highest marks in each subject
+db.students.aggregate([
+{
+    $group: {
+        _id: null,
+        highest_physics: { $max: "$marks.physics" },
+        highest_chemistry: { $max: "$marks.chemistry" },
+        highest_maths: { $max: "$marks.maths" }
+    }
+}
+])
+
+10. Find lowest marks in maths
+db.students.aggregate([
+{
+    $group: {
+        _id: null,
+        lowest_maths: { $min: "$marks.maths" }
+    }
+}
+])
+
+11. Find students admitted after year 2022
+db.students.find({
+    admission_date: {
+        $gt: ISODate("2022-12-31")
+    }
+})
+
+12. Find students scoring between 80 and 90 in physics
+db.students.find({
+    "marks.physics": {
+        $gte: 80,
+        $lte: 90
+    }
+})
+
+13. Find students whose names start with "A"
+db.students.find({
+    name: /^A/
+})
+
+14. Find students whose city is not Pune or Mumbai
+db.students.find({
+    "address.city": {
+        $nin: ["Pune", "Mumbai"]
+    }
+})
+
+15. Add new subject marks for roll no 101
+db.students.updateOne(
+{
+    roll_no: 101
+},
+{
+    $set: {
+        "marks.computer": 89
+    }
+}
+)
+
+16. Delete records of students admitted after 1 Aug 2025
+db.students.deleteMany({
+    admission_date: {
+        $gt: ISODate("2025-08-01")
+    }
+})
+
+
+
+p2
+
+db.movies.insertMany([
+
+{
+    movie_name: "Avengers Endgame",
+    rating_star: 4.9,
+    movie_cast: ["Robert Downey Jr", "Chris Evans"],
+    release_date: ISODate("2020-05-10"),
+    budget: 350000000,
+    collection_amount: 850000000,
+    awards: ["International", "National"]
+},
+
+{
+    movie_name: "Pushpa",
+    rating_star: 4.5,
+    movie_cast: ["Allu Arjun", "Rashmika Mandanna"],
+    release_date: ISODate("2021-12-17"),
+    budget: 200000000,
+    collection_amount: 370000000,
+    awards: ["National"]
+},
+
+{
+    movie_name: "Adipurush",
+    rating_star: 1.8,
+    movie_cast: ["Prabhas", "Kriti Sanon"],
+    release_date: ISODate("2023-06-16"),
+    budget: 500000000,
+    collection_amount: 320000000,
+    awards: []
+},
+
+{
+    movie_name: "3 Idiots",
+    rating_star: 4.8,
+    movie_cast: ["Aamir Khan", "R Madhavan"],
+    release_date: ISODate("2020-01-20"),
+    budget: 55000000,
+    collection_amount: 460000000,
+    awards: ["International"]
+},
+
+{
+    movie_name: "Radhe",
+    rating_star: 1.9,
+    movie_cast: ["Salman Khan", "Disha Patani"],
+    release_date: ISODate("2021-05-13"),
+    budget: 150000000,
+    collection_amount: 90000000,
+    awards: []
+}
+
+])
+
+Queries
+1. Display total count of movies released in year 2020
+db.movies.countDocuments({
+    release_date: {
+        $gte: ISODate("2020-01-01"),
+        $lt: ISODate("2021-01-01")
+    }
+})
+
+2. Display movie names having both International and National awards
+db.movies.find(
+{
+    awards: {
+        $all: ["International", "National"]
+    }
+},
+{
+    movie_name: 1,
+    _id: 0
+}
+)
+
+3. Display all movies with rating more than 4.2
+db.movies.find({
+    rating_star: { $gt: 4.2 }
+})
+
+4. Display movie names whose collection is less than budget
+db.movies.find(
+{
+    $expr: {
+        $lt: ["$collection_amount", "$budget"]
+    }
+},
+{
+    movie_name: 1,
+    _id: 0
+}
+)
+
+5. Delete all movies with rating < 2.0
+db.movies.deleteMany({
+    rating_star: { $lt: 2.0 }
+})
+
+6. Provide International award to movies with rating > 4.8
+db.movies.updateMany(
+{
+    rating_star: { $gt: 4.8 }
+},
+{
+    $addToSet: {
+        awards: "International"
+    }
+}
+)
+
+p3
+
+db.books.insertMany([
+
+{
+    Bookname: "Database System",
+    Authors: ["Korth", "Sudarshan"],
+    Publisher: "McGraw Hill",
+    Edition: 5,
+    Year: 2018,
+    book_rating: 4.8,
+    no_of_copies: 25
+},
+
+{
+    Bookname: "Fundamental C",
+    Authors: ["Balkrishna"],
+    Publisher: "Tech Publication",
+    Edition: 2,
+    Year: 2026,
+    book_rating: 4.6,
+    no_of_copies: 40
+},
+
+{
+    Bookname: "Operating System",
+    Authors: ["Galvin"],
+    Publisher: "Wiley",
+    Edition: 7,
+    Year: 2015,
+    book_rating: 4.3,
+    no_of_copies: 18
+},
+
+{
+    Bookname: "Database Concepts",
+    Authors: ["Navathe"],
+    Publisher: "Pearson",
+    Edition: 6,
+    Year: 2018,
+    book_rating: 4.9,
+    no_of_copies: 30
+},
+
+{
+    Bookname: "C Programming",
+    Authors: ["Dennis Ritchie"],
+    Publisher: "PHI",
+    Edition: 1,
+    Year: 1995,
+    book_rating: 4.1,
+    no_of_copies: 12
+}
+
+])
+
+
+Queries
+i) Find information about all books of “Database”
+db.books.find({
+    Bookname: /Database/i
+})
+
+ii) Find book information of Author “Balkrishna” with Name “Fundamental C”
+db.books.find({
+    Bookname: "Fundamental C",
+    Authors: "Balkrishna"
+})
+
+iii) Display total no. of books published in 2018
+db.books.countDocuments({
+    Year: 2018
+})
+
+iv) Find total count of books having rating greater than 4.5
+db.books.countDocuments({
+    book_rating: { $gt: 4.5 }
+})
+
+v) Delete books published before 1999
+db.books.deleteMany({
+    Year: { $lt: 1999 }
+})
+
+vi) Decrease no_of_copies by 5 for books published in year 2026
+db.books.updateMany(
+{
+    Year: 2026
+},
+{
+    $inc: {
+        no_of_copies: -5
+    }
+}
+)
+
+p4
+db.students.insertMany([
+
+{
+    roll_no: 101,
+    name: "Amit Sharma",
+    address: {
+        city: "Pune",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-02-18"),
+    marks: {
+        physics: 85,
+        chemistry: 78,
+        maths: 92
+    },
+    admission_date: ISODate("2020-06-15"),
+    scholarship: "National Merit"
+},
+
+{
+    roll_no: 102,
+    name: "Anjali Patil",
+    address: {
+        city: "Mumbai",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-02-18"),
+    marks: {
+        physics: 88,
+        chemistry: 90,
+        maths: 95
+    },
+    admission_date: ISODate("2023-07-10"),
+    scholarship: "State Scholarship"
+},
+
+{
+    roll_no: 103,
+    name: "Rohit Verma",
+    address: {
+        city: "Delhi",
+        state: "Delhi"
+    },
+    exam_date: ISODate("2025-12-12"),
+    marks: {
+        physics: 67,
+        chemistry: 70,
+        maths: 55
+    },
+    admission_date: ISODate("2025-08-20"),
+    scholarship: "National Merit"
+},
+
+{
+    roll_no: 104,
+    name: "Akash Kulkarni",
+    address: {
+        city: "Nagpur",
+        state: "Maharashtra"
+    },
+    exam_date: ISODate("2026-01-15"),
+    marks: {
+        physics: 92,
+        chemistry: 89,
+        maths: 96
+    },
+    admission_date: ISODate("2021-09-05"),
+    scholarship: "None"
+}
+
+])
+
+
+1. Single Field Index
+db.students.createIndex({ roll_no: 1 })
+
+2. Compound Index
+db.students.createIndex({
+    "address.city": 1,
+    scholarship: 1
+})
+
+3. Ascending Index
+
+db.students.createIndex({
+    name: 1
+})
+
+db.students.find().sort({ name: 1 })
+
+4. Descending Index
+db.students.createIndex({
+    admission_date: -1
+})
+
+db.students.find().sort({
+    admission_date: -1
+})
+
+5. Multikey Index
+{
+   name: "Amit",
+   hobbies: ["Cricket", "Music", "Coding"]
+}
+
+db.students.createIndex({
+    hobbies: 1
+})
+
+db.students.find({
+    hobbies: "Coding"
+})
+
+6. Text Index
+db.students.createIndex({
+    name: "text"
+})
+
+db.students.find({
+    $text: {
+        $search: "Amit"
+    }
+})
+
+7. Unique Index
+db.students.createIndex(
+{
+    roll_no: 1
+},
+{
+    unique: true
+})
+
+8. Sparse Index
+Example
+db.students.createIndex(
+{
+    scholarship: 1
+},
+{
+    sparse: true
+})
+
+9. TTL (Time To Live) Index
+db.students.createIndex(
+{
+    exam_date: 1
+},
+{
+    expireAfterSeconds: 3600
+})
+
+
+p5
+
+db.movies.insertMany([
+
+{
+    movie_name: "Avengers Endgame",
+    rating_star: 4.9,
+    movie_cast: ["Robert Downey Jr", "Chris Evans"],
+    release_date: ISODate("2020-05-10"),
+    budget: 350000000,
+    collection_amount: 850000000,
+    awards: ["International", "National"]
+},
+
+{
+    movie_name: "Pushpa",
+    rating_star: 4.5,
+    movie_cast: ["Allu Arjun", "Rashmika Mandanna"],
+    release_date: ISODate("2021-12-17"),
+    budget: 200000000,
+    collection_amount: 370000000,
+    awards: ["National"]
+},
+
+{
+    movie_name: "3 Idiots",
+    rating_star: 4.8,
+    movie_cast: ["Aamir Khan", "R Madhavan"],
+    release_date: ISODate("2020-01-20"),
+    budget: 55000000,
+    collection_amount: 460000000,
+    awards: ["International"]
+},
+
+{
+    movie_name: "Adipurush",
+    rating_star: 1.8,
+    movie_cast: ["Prabhas", "Kriti Sanon"],
+    release_date: ISODate("2023-06-16"),
+    budget: 500000000,
+    collection_amount: 320000000,
+    awards: []
+}
+
+])
+
+1. Single Field Index
+db.movies.createIndex({
+    movie_name: 1
+})
+
+2. Ascending Index
+db.movies.createIndex({
+    rating_star: 1
+})
+
+3. Descending Index
+db.movies.createIndex({
+    release_date: -1
+})
+
+4. Compound Index
+Index on rating and collection amount
+db.movies.createIndex({
+    rating_star: 1,
+    collection_amount: -1
+})
+
+db.movies.find({
+    rating_star: { $gt: 4.0 }
+}).sort({
+    collection_amount: -1
+})
+5. Multikey Index
+db.movies.createIndex({
+    movie_cast: 1
+})
+
+db.movies.find({
+    movie_cast: "Allu Arjun"
+})
+
+6. Text Index
+Create Text Index on movie_name
+db.movies.createIndex({
+    movie_name: "text"
+})
+Query Example
+db.movies.find({
+    $text: {
+        $search: "Avengers"
+    }
+})
+
+7. Unique Index
+db.movies.createIndex(
+{
+    movie_name: 1
+},
+{
+    unique: true
+})
+
+db.movies.getIndexes()
+
+db.movies.find({
+    rating_star: 4.5
+}).explain("executionStats")
+
+db.movies.createIndex({
+    rating_star: 1
+})
+
+db.movies.find({
+    rating_star: 4.5
+}).explain("executionStats")
+
+
+p6
+
+db.books.insertMany([
+
+{
+    Bookname: "Fundamental C",
+    subjectName: "Programming",
+    Author: "Balkrishna",
+    Publisher: "Tech Publication",
+    Edition: 2,
+    Year: 2026,
+    price: 650
+},
+
+{
+    Bookname: "Database System",
+    subjectName: "Database",
+    Author: "Korth",
+    Publisher: "McGraw Hill",
+    Edition: 5,
+    Year: 2018,
+    price: 720
+},
+
+{
+    Bookname: "Operating System",
+    subjectName: "System",
+    Author: "Galvin",
+    Publisher: "Wiley",
+    Edition: 7,
+    Year: 2024,
+    price: 480
+},
+
+{
+    Bookname: "Java Programming",
+    subjectName: "Programming",
+    Author: "Herbert Schildt",
+    Publisher: "Oracle Press",
+    Edition: 8,
+    Year: 2022,
+    price: 590
+},
+
+{
+    Bookname: "Computer Network",
+    subjectName: "Networking",
+    Author: "Tanenbaum",
+    Publisher: "Pearson",
+    Edition: 4,
+    Year: 2025,
+    price: 680
+}
+
+])
+
+1. Create Index on Author in Ascending Order
+db.books.createIndex({
+    Author: 1
+})
+
+2. Create Compound Index on Author and Bookname
+db.books.createIndex({
+    Author: 1,
+    Bookname: 1
+})
+
+3. Display Recently Published Book
+db.books.find().sort({
+    Year: -1
+}).limit(1)
+
+4. Find All Books Costing More Than 500
+db.books.find({
+    price: { $gt: 500 }
+})
+
+5. Update Price of “Fundamental C” Book
+db.books.updateOne(
+{
+    Bookname: "Fundamental C"
+},
+{
+    $set: {
+        price: 700
+    }
+}
+)
+
+6. Delete Books with Price < 500
+db.books.deleteMany({
+    price: { $lt: 500 }
+})
+
+7. Find Average Price of Books
+db.books.aggregate([
+{
+    $group: {
+        _id: null,
+        average_price: {
+            $avg: "$price"
+        }
+    }
+}
+])
+
+8. Count Books by Subject
+db.books.aggregate([
+{
+    $group: {
+        _id: "$subjectName",
+        total_books: {
+            $sum: 1
+        }
+    }
+}
+])
+
+9. Find Books Between Price Range 500 and 700
+db.books.find({
+    price: {
+        $gte: 500,
+        $lte: 700
+    }
+})
+
+10. Sort Books by Year (Newest First)
+db.books.find().sort({
+    Year: -1
+})
+
+p12
+
+db.teachers.insertMany([
+
+{
+    name: "Raman",
+    qualifications: ["M.Tech", "PhD"],
+    department: {
+        dept_name: "Computer Engineering"
+    },
+    experience: 22,
+    salary_structure: {
+        basic_pay: 85000,
+        hra: 12000
+    },
+    date_of_joining: ISODate("2004-06-15"),
+    appointment_nature: "Permanent",
+    area_of_expertise: ["DBMS", "MongoDB"]
+},
+
+{
+    name: "Anita",
+    qualifications: ["M.E"],
+    department: {
+        dept_name: "Computer Engineering"
+    },
+    experience: 8,
+    salary_structure: {
+        basic_pay: 60000,
+        hra: 9000
+    },
+    date_of_joining: ISODate("2018-08-10"),
+    appointment_nature: "Permanent",
+    area_of_expertise: ["Networking"]
+},
+
+{
+    name: "Suresh",
+    qualifications: ["M.Sc"],
+    department: {
+        dept_name: "Information Technology"
+    },
+    experience: 3,
+    salary_structure: {
+        basic_pay: 42000,
+        hra: 5000
+    },
+    date_of_joining: ISODate("2023-01-12"),
+    appointment_nature: "Contract",
+    area_of_expertise: ["Python"]
+},
+
+{
+    name: "Kiran",
+    qualifications: ["PhD"],
+    department: {
+        dept_name: "Electronics"
+    },
+    experience: 25,
+    salary_structure: {
+        basic_pay: 92000,
+        hra: 15000
+    },
+    date_of_joining: ISODate("2000-05-20"),
+    appointment_nature: "Permanent",
+    area_of_expertise: ["Embedded Systems"]
+}
+
+])
+
+1. Add Document if it Does Not Exist (save() method)
+db.teachers.save({
+    _id: 105,
+    name: "Mahesh",
+    qualifications: ["M.Tech"],
+    department: {
+        dept_name: "Mechanical"
+    },
+    experience: 5,
+    salary_structure: {
+        basic_pay: 50000,
+        hra: 7000
+    },
+    date_of_joining: ISODate("2021-07-01"),
+    appointment_nature: "Permanent",
+    area_of_expertise: ["Thermodynamics"]
+})
+
+2. Increment Basic Pay by 10%
+db.teachers.updateMany(
+{},
+[
+{
+    $set: {
+        "salary_structure.basic_pay": {
+            $multiply: [
+                "$salary_structure.basic_pay",
+                1.10
+            ]
+        }
+    }
+}
+]
+)
+
+3. Add New Area of Expertise for Faculty ‘Raman’
+db.teachers.updateOne(
+{
+    name: "Raman"
+},
+{
+    $addToSet: {
+        area_of_expertise: "Artificial Intelligence"
+    }
+}
+)
+
+4. Display Teachers in Descending Order of Experience
+db.teachers.find().sort({
+    experience: -1
+})
+
+5. Change Department of Anita
+db.teachers.updateOne(
+{
+    name: "Anita"
+},
+{
+    $set: {
+        "department.dept_name": "Information Technology"
+    }
+}
+)
+
+6. Delete Teachers Having Experience Between 2 to 3 Years
+db.teachers.deleteMany({
+    experience: {
+        $gte: 2,
+        $lte: 3
+    }
+})
+
+7. Display Teachers Having Experience > 20 OR Having PhD
+db.teachers.find({
+    $or: [
+        {
+            experience: { $gt: 20 }
+        },
+        {
+            qualifications: "PhD"
+        }
+    ]
+})
+
+p13
+
+db.courses.insertMany([
+
+{
+    title: "Database Management System",
+    department: "Computer Engineering",
+    credit_hours: 4,
+
+    instructor: {
+        name: "Raman",
+        experience: 22,
+        designation: "Professor",
+        department: "Computer Engineering"
+    },
+
+    enrollments: [
+        {
+            student_name: "Amit",
+            score: 88,
+            pass_status: true
+        },
+        {
+            student_name: "Anjali",
+            score: 91,
+            pass_status: true
+        },
+        {
+            student_name: "Rohit",
+            score: 40,
+            pass_status: false
+        }
+    ]
+},
+
+{
+    title: "Operating System",
+    department: "Computer Engineering",
+    credit_hours: 3,
+
+    instructor: {
+        name: "Anita",
+        experience: 12,
+        designation: "Associate Professor",
+        department: "Computer Engineering"
+    },
+
+    enrollments: [
+        {
+            student_name: "Kiran",
+            score: 78,
+            pass_status: true
+        },
+        {
+            student_name: "Sneha",
+            score: 84,
+            pass_status: true
+        },
+        {
+            student_name: "Raj",
+            score: 35,
+            pass_status: false
+        }
+    ]
+},
+
+{
+    title: "Computer Networks",
+    department: "Information Technology",
+    credit_hours: 4,
+
+    instructor: {
+        name: "Suresh",
+        experience: 18,
+        designation: "Professor",
+        department: "Information Technology"
+    },
+
+    enrollments: [
+        {
+            student_name: "Pooja",
+            score: 95,
+            pass_status: true
+        },
+        {
+            student_name: "Akash",
+            score: 89,
+            pass_status: true
+        }
+    ]
+}
+
+])
+
+1. Count Number of Courses Taught by Each Instructor
+db.courses.aggregate([
+
+{
+    $group: {
+        _id: "$instructor.name",
+        total_courses: {
+            $sum: 1
+        }
+    }
+}
+
+])
+
+2. Calculate Average Marks Scored in Every Course
+db.courses.aggregate([
+
+{
+    $unwind: "$enrollments"
+},
+
+{
+    $group: {
+        _id: "$title",
+        average_marks: {
+            $avg: "$enrollments.score"
+        }
+    }
+}
+
+])
+
+3. List Faculty in Descending Order of Experience Within Each Department
+db.courses.aggregate([
+
+{
+    $project: {
+        department: "$instructor.department",
+        faculty_name: "$instructor.name",
+        experience: "$instructor.experience",
+        designation: "$instructor.designation"
+    }
+},
+
+{
+    $sort: {
+        department: 1,
+        experience: -1
+    }
+}
+
+])
+
+4. List Students with Highest Scores
+db.courses.aggregate([
+
+{
+    $unwind: "$enrollments"
+},
+
+{
+    $sort: {
+        "enrollments.score": -1
+    }
+},
+
+{
+    $limit: 1
+},
+
+{
+    $project: {
+        _id: 0,
+        student_name: "$enrollments.student_name",
+        score: "$enrollments.score",
+        course: "$title"
+    }
+}
+
+])
+
+5. Calculate Pass Percentage in Each Course
+db.courses.aggregate([
+
+{
+    $project: {
+        title: 1,
+
+        total_students: {
+            $size: "$enrollments"
+        },
+
+        passed_students: {
+            $size: {
+                $filter: {
+                    input: "$enrollments",
+                    as: "student",
+                    cond: {
+                        $eq: ["$$student.pass_status", true]
+                    }
+                }
+            }
+        }
+    }
+},
+
+{
+    $project: {
+        title: 1,
+
+        pass_percentage: {
+            $multiply: [
+                {
+                    $divide: [
+                        "$passed_students",
+                        "$total_students"
+                    ]
+                },
+                100
+            ]
+        }
+    }
+}
+
+])
